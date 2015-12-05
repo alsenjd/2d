@@ -1,0 +1,424 @@
+import random
+import json
+import os
+import sys
+from pico2d import *
+from array import *
+import game_framework
+import title_state
+import finishgame
+
+global flag
+flag = 0
+global flag2
+flag2 = False
+global stage
+stage = 4
+
+name = "MainState"
+
+boy = None
+grass = None
+font = None
+tile = None
+map = None
+
+class Tile:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.color = 0
+
+#tile = []
+#tile.append(Tile())
+
+
+
+
+list = []
+for i in range(0,15):
+    list.append([])
+    for j in range(0,20):
+        list[i].append(Tile())
+
+
+for i in range(0,15):
+    for j in range(0,20):
+        list[i][j].x = 40 * j + 40;
+        list[i][j].y = 40 * i + 40;
+        list[i][j].color = 6
+print(list[12][11].color)
+
+####################파일 입력##########################
+class Map:
+    def level(self):
+        map = []
+        if (stage == 0):
+            file = open("test1.txt" , "r")
+        if (stage == 1):
+            file = open("test2.txt" , "r")
+        if (stage == 2):
+            file = open("test3.txt" , "r")
+        if (stage == 3):
+            file = open("test4.txt" , "r")
+        if (stage == 4):
+            file = open("test5.txt" , "r")
+        for i in file:
+            map.append(i.strip())
+            cnt = 0
+
+        for i in range(0,15):
+            for j in range(0,20):
+                list[i][j].color = int(map[cnt])
+                cnt += 1
+######################################################
+
+
+class Grass:
+    def __init__(self):
+        self.color = 0
+        self.image = load_image('realobject.png')
+
+    def draw(self):
+        for i in range(0,15):
+            for j in range(0,20):
+                self.image.clip_draw(list[i][j].color *40,0,40,40,list[i][j].x, list[i][j].y)
+     
+
+class BackGround:
+    def __init__(self):
+        self.image = load_image('ground.png')
+        self.color = 1
+
+    def draw(self):
+        self.image.draw(400, 300)
+
+class Boy:
+    global grass
+    global map
+    eat_sound = None
+    enter_sound = None
+    LEFT_RUN, UP_RUN, RIGHT_RUN, DOWN_RUN = 0, 1, 2, 3
+    def handle_left_run(self):
+        global stage
+        if (flag2 == True):
+            self.x -= 5
+        x = (self.x) // 40
+        y = (self.y+20) // 40
+        
+        if (list[y-1][x-1].color != self.color and list[y-1][x-1].color != 6):
+            self.x += 10    
+
+        if(list[y-1][x-1].color ==3):
+            self.colorframe = list[y-1][x-1].color-1
+            list[y-1][x-1].color = 6
+            self.color = 2
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==4):
+            self.colorframe = list[y-1][x-1].color
+            list[y-1][x-1].color = 6
+            self.color = 1
+            self.eat_sound.play()
+
+
+
+        if(list[y-1][x-1].color ==5):
+            self.colorframe = list[y-1][x-1].color+1
+            list[y-1][x-1].color = 6
+            self.color = 0
+            self.eat_sound.play()
+
+
+
+        if(list[y-1][x-1].color == 8):
+            stage = stage + 1
+            if stage == 5:
+                game_framework.change_state(finishgame)
+            else:
+                self.x = 100
+                self.y = 500
+                self.colorframe = 0
+                self.color = 6
+                self.enter_sound.play()
+                map.level()
+
+    def handle_right_run(self):
+        global stage
+
+        if (flag2 == True):
+            self.x += 5
+        x = (self.x+40) // 40
+        y = (self.y+20) // 40
+   
+        if (list[y-1][x-1].color != self.color and list[y-1][x-1].color != 6):
+            self.x -= 10
+        
+        
+        #if (list[y][x].color == 3 or list[y][x].color == 4 or list[y][x].color == 5):
+        #    self.colorframe = list[y][x].color
+        #    list[y][x].color = 6
+        #    self.color = 2
+        if(list[y-1][x-1].color ==3):
+            self.colorframe = list[y-1][x-1].color-1
+            list[y-1][x-1].color = 6
+            self.color = 2
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==4):
+            self.colorframe = list[y-1][x-1].color
+            list[y-1][x-1].color = 6
+            self.color = 1
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==5):
+            self.colorframe = list[y-1][x-1].color+1
+            list[y-1][x-1].color = 6
+            self.color = 0
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color == 8):
+            stage = stage + 1
+            if stage == 5:
+                game_framework.change_state(finishgame)
+            else:
+                self.x = 100
+                self.y = 500
+                self.colorframe = 0
+                self.color = 6
+                self.enter_sound.play()
+                map.level()
+
+    def handle_up_run(self):
+        global stage
+        if (flag2 == True):
+            self.y += 5
+        x = (self.x + 20) // 40
+        y = (self.y + 40) // 40
+      
+        if (list[y-1][x-1].color != self.color and list[y-1][x-1].color != 6):
+            self.y -= 10
+
+        if(list[y-1][x-1].color ==3):
+            self.colorframe = list[y-1][x-1].color-1
+            list[y-1][x-1].color = 6
+            self.color = 2
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==4):
+            self.colorframe = list[y-1][x-1].color
+            list[y-1][x-1].color = 6
+            self.color = 1
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==5):
+            self.colorframe = list[y-1][x-1].color+1
+            list[y-1][x-1].color = 6
+            self.color = 0
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color == 8):
+            stage = stage + 1
+            if stage == 5:
+                game_framework.change_state(finishgame)
+            else:
+                self.x = 100
+                self.y = 500
+                self.colorframe = 0
+                self.color = 6
+                self.enter_sound.play()
+                map.level()
+
+    def handle_down_run(self):
+        global stage
+        if (flag2 == True):
+            self.y -= 5
+        x = (self.x+20) // 40
+        y = (self.y) // 40
+
+        if(list[y-1][x-1].color != self.color and list[y-1][x-1].color != 6):
+            self.y += 10
+
+        if(list[y-1][x-1].color ==3):
+            self.colorframe = list[y-1][x-1].color-1
+            list[y-1][x-1].color = 6
+            self.color = 2
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==4):
+            self.colorframe = list[y-1][x-1].color
+            list[y-1][x-1].color = 6
+            self.color = 1
+            self.eat_sound.play()
+
+        if(list[y-1][x-1].color ==5):
+            self.colorframe = list[y-1][x-1].color+1
+            list[y-1][x-1].color = 6
+            self.color = 0
+            self.eat_sound.play()
+
+        
+        if(list[y-1][x-1].color == 8):
+            stage = stage + 1
+            if stage == 5:
+                game_framework.change_state(finishgame)
+            else:
+                self.x = 100
+                self.y = 500
+                self.colorframe = 0
+                self.color = 6
+                self.enter_sound.play()
+                map.level()
+   
+
+
+    handle_state = {
+        LEFT_RUN : handle_left_run,
+        RIGHT_RUN: handle_right_run,
+        UP_RUN: handle_up_run,
+        DOWN_RUN: handle_down_run,
+    }
+    def __init__(self):
+        self.x, self.y = 100, 500
+        self.state = self.LEFT_RUN
+        self.frame = 0
+        self.color = 6
+        self.colorframe = 0
+        self.run_frames = 0
+        self.stand_frames = 0
+        self.image = load_image('realcharacter.jpg')
+        self.dir = 2
+        self.boost = 0
+        self.flag = False
+        self.bgm = load_music('2Dbgm.mp3')
+        self.bgm.set_volume(64)
+        self.bgm.repeat_play()
+        if self.eat_sound == None:
+            self.eat_sound = load_wav('waza.wav')
+            self.eat_sound.set_volume(64)
+        if self.enter_sound == None:
+            self.enter_sound = load_wav('enter.wav')
+            self.enter_sound.set_volume(64)
+    def setCheck(self,check):
+        self.flag = check
+
+    def update(self):
+        self.frame = (self.frame + 1) % 2
+        self.handle_state[self.state](self)
+
+    def draw(self):
+        self.image.clip_draw((self.frame + self.colorframe) * 40, self.state*40, 40, 40, self.x, self.y)
+
+def enter():
+    global boy, grass, tile, background, map
+    boy = Boy()
+    grass = Grass()
+    tile = Tile()
+    background = BackGround()
+    map = Map()
+    map.level()
+
+
+def exit():
+    global boy, grass
+    del(boy)
+    del(grass)
+
+
+def pause():
+    pass
+
+
+def resume():
+    pass
+
+
+def handle_events():
+    global map
+    global boy
+    global flag1
+    global flag2
+    global flag
+    events = get_events()
+    for event in events:
+        if event.type == SDL_QUIT:
+            game_framework.quit()
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            game_framework.change_state(title_state)
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
+            flag2 = True
+            boy.state = 2
+        elif event.type == SDL_KEYUP and event.key == SDLK_RIGHT:
+            flag2 = False
+
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
+            flag2 = True
+            boy.state = 0
+        elif event.type == SDL_KEYUP and event.key == SDLK_LEFT:
+            flag2 = False
+
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_UP:
+            flag2 = True
+            boy.state = 1
+        elif event.type == SDL_KEYUP and event.key == SDLK_UP:
+            flag2 = False
+
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_DOWN:
+            flag2 = True
+            boy.state = 3
+        elif event.type == SDL_KEYUP and event.key == SDLK_DOWN:
+            flag2 = False
+
+
+
+
+
+def update():
+    boy.update()
+
+def draw():
+    clear_canvas()
+    background.draw()
+    grass.draw()
+    boy.draw()
+    delay(0.05)
+    update_canvas()
+
+
+
+
+////////////////finishgame.py/////////////////////////////////////
+import game_framework
+from pico2d import *
+
+
+name = "TitleState"
+image = None
+
+
+def enter():
+    global image
+    image = load_image('finish.png')
+
+
+def exit():
+    global image
+    del(image)
+
+
+def handle_events():
+    events = get_events()
+    for event in events:
+        if event.type == SDL_QUIT:
+            game_framework.quit()
+        else:
+            if(event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
+                game_framework.quit()
+            elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
+                game_framework.change_state(main_state)
+
+
+def draw():
+    clear_canvas()
+    image.draw(400, 300)
+    update_canvas()
